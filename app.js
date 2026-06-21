@@ -187,7 +187,7 @@ const SKINCARE_RULES = {
       'Jika kulit sangat kering atau mengelupas secara berlebihan, disarankan berkonsultasi dengan dokter kulit.'
   },
 
-  'Jerawat Ringan': {
+  'Jerawat': {
     description:
       'Kulit Anda mengalami beberapa inflamasi atau bruntusan ringan yang umumnya dipicu oleh pori-pori tersumbat atau minyak berlebih.',
 

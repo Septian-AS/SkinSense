@@ -1,1 +1,1 @@
-{"tfjsVersion":"1.7.4","tmVersion":"2.4.14","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-05-18T14:37:31.393Z","userMetadata":{},"modelName":"MODEL SKINSENSE","labels":["Normal","Berminyak","Kering","Jerawat Ringan"],"imageSize":224}
+{"tfjsVersion":"1.7.4","tmVersion":"2.4.14","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-06-21T12:36:38.482Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["Jerawat","Kering","Normal","Berminyak"],"imageSize":224}
