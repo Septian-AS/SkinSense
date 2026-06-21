@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkinSense: AI Skin Analyzer & Skincare Recommendation</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">U</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900">SkinSense</h1>
+                    <p class="text-xs text-slate-500">Implementasi AI Berbasis Teachable Machine (Kelompok 11)</p>
+                </div>
+            </div>
+            <span class="text-xs bg-slate-100 border border-slate-300 text-slate-600 px-3 py-1 rounded-full font-medium">
+            </span>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800 flex items-start gap-3">
+            <span class="text-base">⚠️</span>
+            <p><strong>Batasan Sistem:</strong> Aplikasi ini ditujukan sebagai alternatif analisis cepat dan rekomendasi umum berdasarkan aturan baku kelompok 11. Sistem tidak digunakan untuk diagnosis medis resmi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
+                    <h2 class="text-lg font-semibold text-slate-900 mb-4 self-start">AI Skin Analyzer</h2>
+                    
+                    <div class="relative bg-slate-900 w-[310px] h-[310px] sm:w-[350px] sm:h-[350px] rounded-xl overflow-hidden flex items-center justify-center shadow-inner mb-4 border border-slate-300">
+                        <div id="loading-model" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-2"></div>
+                            <p class="text-sm">Memuat Model Teachable Machine Lokal...</p>
+                        </div>
+
+                        <div id="webcam-placeholder" class="hidden text-center p-6 text-slate-400 flex flex-col items-center">
+                            <span class="text-4xl mb-3">📷</span>
+                            <p class="text-sm font-medium mb-1">Kamera Belum Aktif</p>
+                            <p class="text-xs text-slate-500 max-w-[240px]">Klik tombol di bawah untuk mengizinkan akses webcam wajah Anda</p>
+                        </div>
+
+                        <div id="webcam-container" class="w-full h-full hidden"></div>
+                        <canvas id="captured-canvas" class="w-full h-full hidden absolute inset-0 z-5 bg-black"></canvas>
+                    </div>
+
+                    <div class="w-full flex flex-col gap-2">
+                        <button id="btn-webcam" disabled class="w-full py-3 px-6 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-slate-300 text-slate-500 cursor-not-allowed">
+                            Memuat Model...
+                        </button>
+                        
+                        <button id="btn-capture" class="w-full py-3 px-6 rounded-xl font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all duration-200 hidden items-center justify-center gap-2 cursor-pointer">
+                            📸 Ambil Foto Wajah & Analisis
+                        </button>
+
+                        <button id="btn-retake" class="w-full py-3 px-6 rounded-xl font-medium text-sm bg-slate-600 text-white hover:bg-slate-700 transition-all duration-200 hidden items-center justify-center gap-2 cursor-pointer">
+                            🔄 Ulangi Foto Wajah
+                        </button>
+                    </div>
+                </div>
+
+                <div id="accuracy-card" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hidden">
+                    <h3 class="text-sm font-semibold text-slate-900 mb-4">Akurasi Hasil Analisis Foto</h3>
+                    <div id="prediction-bars" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7">
+                <div id="empty-state" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center text-slate-500 h-full flex flex-col items-center justify-center min-h-[300px]">
+                    <span class="text-5xl mb-4">✨</span>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-1">Menunggu Foto Wajah</h3>
+                    <p class="text-sm text-slate-400 max-w-sm">Aktifkan kamera, posisikan wajah Anda di tengah kotak, lalu klik tombol "Ambil Foto Wajah" agar AI dapat menganalisis jenis kulit Anda.</p>
+                </div>
+
+                <div id="result-state" class="space-y-6 hidden">
+                    <div class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl shadow-sm animate-fadeIn">
+                        <div class="flex items-center gap-2 text-emerald-800 font-medium text-xs uppercase tracking-wider mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Hasil Analisis Tertinggi
+                        </div>
+                        <h3 id="skin-condition-title" class="text-2xl font-bold text-slate-900 mb-2">Kondisi Kulit: -</h3>
+                        <p id="skin-condition-desc" class="text-slate-600 text-sm leading-relaxed">-</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-md mb-4">Rekomendasi Tahapan Skincare:</h3>
+                        <div id="recommendations-list" class="space-y-3"></div>
+                    </div>
+                </div>
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800">
+                                Riwayat Analisis
+                            </h3>
+
+                            <button
+                                id="clear-history"
+                                class="px-3 py-1 bg-red-500 text-white rounded-lg text-xs"
+                            >
+                                Hapus
+                            </button>
+                        </div>
+
+                        <div
+                            id="history-list"
+                            class="space-y-3"
+                        >
+                        </div>
+                    </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
