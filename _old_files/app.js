@@ -395,7 +395,6 @@ async function captureAndAnalyze() {
         0
     );
 
-    const faceDetected =
 
     webcamContainerEl.classList.add('hidden');
     capturedCanvasEl.classList.remove('hidden');

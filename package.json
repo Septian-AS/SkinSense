@@ -1,0 +1,29 @@
+{
+  "name": "skinsense",
+  "version": "1.1.0",
+  "description": "AI-powered skin type analyzer with personalized skincare recommendations",
+  "type": "module",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000 --directory .",
+    "build": "echo 'Static site - no build needed'",
+    "start": "python3 -m http.server 8000 --directory ."
+  },
+  "keywords": [
+    "ai",
+    "skin-analysis",
+    "skincare",
+    "ml",
+    "tensorflow",
+    "teachable-machine"
+  ],
+  "author": "Kelompok 11",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/skinsense"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

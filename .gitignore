@@ -1,0 +1,14 @@
+# Git ignore rules
+node_modules/
+.env
+.env.local
+*.log
+.DS_Store
+.vscode/
+model/weights.bin
+.claude/
+dist/
+build/
+*.swp
+*.swo
+*~

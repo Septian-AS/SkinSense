@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SkinSense - AI-powered skin type analyzer with real-time feedback">
+    <title>SkinSense: AI Skin Type Analyzer</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../assets/styles/main.css">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3/dist/chart.min.js"></script>
+</head>
+<body>
+
+    <!-- ============ HERO HEADER ============ -->
+    <header class="hero">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="logo">
+                    <div class="logo-icon">💜</div>
+                    <span class="logo-text">SkinSense</span>
+                </div>
+                <div class="nav-info">
+                    <span class="badge">🤖 AI-Powered Analysis</span>
+                </div>
+            </div>
+        </nav>
+
+        <section class="hero-content">
+            <div class="container">
+                <h1 class="hero-title">Discover Your Skin Type</h1>
+                <p class="hero-subtitle">AI-powered analysis with real-time feedback • Personalized skincare recommendations</p>
+            </div>
+        </section>
+    </header>
+
+    <!-- ============ MAIN ANALYZER SECTION ============ -->
+    <main class="analyzer-section">
+        <div class="container">
+            <div class="analyzer-grid">
+
+                <!-- LEFT SIDE: Camera -->
+                <div class="camera-container">
+                    <div class="camera-box">
+                        <div class="camera-wrapper">
+                            <!-- Webcam Container -->
+                            <div id="webcam-container" class="webcam-display"></div>
+                            <canvas id="captured-canvas" class="captured-canvas" hidden></canvas>
+
+                            <!-- Quality Feedback Overlay -->
+                            <div class="quality-overlay">
+                                <div class="guide-grid">
+                                    <div class="grid-line grid-line-h"></div>
+                                    <div class="grid-line grid-line-v"></div>
+                                </div>
+
+                                <div class="indicators">
+                                    <div id="face-indicator" class="indicator">
+                                        <span class="indicator-dot"></span>
+                                        <span class="indicator-text">Detecting face...</span>
+                                    </div>
+                                    <div id="brightness-indicator" class="indicator">
+                                        <span class="indicator-dot"></span>
+                                        <span class="indicator-text">Analyzing light...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading State with Progress -->
+                        <div id="loading-model" class="loading-state hidden">
+                            <div class="spinner"></div>
+                            <div style="text-align: center;">
+                                <p id="loading-text" style="margin: 0;">Memuat AI Model...</p>
+                                <div style="margin-top: 12px; font-size: 0.85rem; color: rgba(255,255,255,0.7); display: flex; gap: 8px; justify-content: center;">
+                                    <span id="loading-step-1" style="color: #10B981;">✓</span>
+                                    <span id="loading-step-2" style="color: rgba(255,255,255,0.5);">◇</span>
+                                    <span id="loading-step-3" style="color: rgba(255,255,255,0.5);">◇</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Camera Controls -->
+                    <div class="button-group">
+                        <button id="btn-webcam" class="btn btn-primary" disabled>
+                            📷 Enable Camera
+                        </button>
+                        <button id="btn-capture" class="btn btn-success hidden" disabled>
+                            ✓ Capture & Analyze
+                        </button>
+                        <button id="btn-retake" class="btn btn-secondary hidden">
+                            🔄 Retake Photo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: Results & Info -->
+                <div class="results-container">
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="empty-state">
+                        <div class="empty-icon">✨</div>
+                        <h2>Ready to Analyze?</h2>
+                        <p>Activate your camera and take a clear photo of your face to get started</p>
+                        <div class="tips-box">
+                            <p class="tips-title">💡 Tips for Best Results:</p>
+                            <ul>
+                                <li>Good lighting from the front</li>
+                                <li>Face centered in frame (60-80%)</li>
+                                <li>Remove glasses/accessories</li>
+                                <li>Neutral expression</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Results State -->
+                    <div id="result-state" class="result-state" hidden>
+                        <!-- Main Result Card -->
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div class="result-info">
+                                    <h2 id="skin-condition-title" class="result-title">-</h2>
+                                    <p id="skin-condition-desc" class="result-description">-</p>
+                                </div>
+                                <div class="confidence-circle">
+                                    <svg viewBox="0 0 100 100" class="confidence-ring">
+                                        <circle cx="50" cy="50" r="45" class="ring-bg"></circle>
+                                        <circle id="confidence-ring-progress" cx="50" cy="50" r="45" class="ring-progress"></circle>
+                                    </svg>
+                                    <span id="confidence-value" class="confidence-text">0%</span>
+                                </div>
+                            </div>
+
+                            <!-- Accuracy Bars -->
+                            <div id="accuracy-section" class="accuracy-section" hidden>
+                                <h4>Prediction Confidence</h4>
+                                <div id="prediction-bars" class="prediction-bars"></div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="result-actions">
+                                <button id="btn-share" class="btn btn-secondary">
+                                    📤 Share Result
+                                </button>
+                                <button id="btn-new-analysis" class="btn btn-ghost">
+                                    🔄 New Analysis
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Skincare Recommendations -->
+                        <div class="recommendations-section">
+                            <h3>Your Skincare Routine</h3>
+                            <div id="recommendations-list" class="recommendations-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============ ANALYTICS SECTION ============ -->
+    <section class="analytics-section">
+        <div class="container">
+            <h2 class="section-title">Your Analysis Journey</h2>
+
+            <div class="analytics-grid">
+                <!-- Trend Chart -->
+                <div class="analytics-card">
+                    <h4>Trend (Last 7 Days)</h4>
+                    <div class="chart-container">
+                        <canvas id="trend-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="analytics-card">
+                    <h4>Quick Stats</h4>
+                    <ul class="stats-list">
+                        <li>
+                            <span class="stat-label">Total Scans:</span>
+                            <span id="total-scans" class="stat-value">0</span>
+                        </li>
+                        <li>
+                            <span class="stat-label">Most Common:</span>
+                            <span id="most-common" class="stat-value">-</span>
+                        </li>
+                        <li>
+                            <span class="stat-label">Today:</span>
+                            <span id="today-scans" class="stat-value">0</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-section">
+                <div class="history-header">
+                    <h3>Analysis History</h3>
+                    <button id="clear-history" class="btn btn-danger-ghost btn-small">
+                        🗑️ Clear All
+                    </button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <p class="history-empty">No analysis history yet</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ TIPS CAROUSEL ============ -->
+    <section class="tips-section">
+        <div class="container">
+            <h2 class="section-title">Photography Tips (15 Tips Lengkap)</h2>
+
+            <div class="carousel-wrapper">
+                <div class="carousel">
+                    <button class="carousel-btn prev" title="Tips Sebelumnya">‹</button>
+
+                    <div class="carousel-track">
+                        <!-- Carousel items generated by JS -->
+                    </div>
+
+                    <button class="carousel-btn next" title="Tips Berikutnya">›</button>
+                </div>
+
+                <!-- Carousel Indicator -->
+                <div class="carousel-indicator">
+                    <span id="carousel-current">1</span> / <span id="carousel-total">15</span> Tips
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    © 2026 SkinSense • Prototype v1.1 |
+                    <a href="#" class="footer-link">Docs</a> •
+                    <a href="#" class="footer-link">Privacy</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============ MODAL: Share Result ============ -->
+    <div id="share-modal" class="modal" hidden>
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Share Your Result</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Your skin type result will be shared:</p>
+                <div class="share-options">
+                    <button class="share-btn" data-share="copy">📋 Copy Result</button>
+                    <button class="share-btn" data-share="whatsapp">💬 WhatsApp</button>
+                    <button class="share-btn" data-share="twitter">𝕏 Tweet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ NOTIFICATION TOAST ============ -->
+    <div id="notification-toast" class="toast" hidden></div>
+
+    <!-- ============ SCRIPTS ============ -->
+    <script src="../js/config.js"></script>
+    <script src="../js/modules/storage.js"></script>
+    <script src="../js/modules/recommendations.js"></script>
+    <script src="../js/modules/model.js"></script>
+    <script src="../js/modules/webcam.js"></script>
+    <script src="../js/modules/analyzer.js"></script>
+    <script src="../js/modules/ui.js"></script>
+    <script src="../js/main.js"></script>
+
+</body>
+</html>
