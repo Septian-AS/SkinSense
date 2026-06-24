@@ -60,12 +60,17 @@ const WebcamModule = (() => {
     const captureFrame = () => {
         if (!webcam || !webcam.canvas) return null;
 
+        // Force update: pastikan frame terbaru dari hardware webcam
+        webcam.update();
+
         const canvas = document.getElementById('captured-canvas');
         const ctx = canvas.getContext('2d');
 
         canvas.width = webcam.canvas.width;
         canvas.height = webcam.canvas.height;
         ctx.drawImage(webcam.canvas, 0, 0);
+
+        console.log('📸 [SkinSense] Frame captured:', canvas.width, '×', canvas.height);
 
         return canvas;
     };

@@ -207,6 +207,15 @@ async function captureAndAnalyze() {
         const canvas = WebcamModule.captureFrame();
         if (!canvas) throw new Error('Gagal mengambil foto dari kamera');
 
+        // 🔍 DIAGNOSTIC: Verifikasi gambar unik antar capture
+        const _ctx = canvas.getContext('2d');
+        const _imgData = _ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let _hash = 0;
+        for (let i = 0; i < _imgData.length; i += 997) {
+            _hash = ((_hash << 5) - _hash + _imgData[i]) | 0;
+        }
+        console.log('🖼️ [SkinSense] Captured image hash:', _hash, '| size:', canvas.width, '×', canvas.height);
+
         // Stop webcam stream
         WebcamModule.stopWebcam();
 
